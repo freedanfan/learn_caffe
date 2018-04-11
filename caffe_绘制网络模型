@@ -1,0 +1,28 @@
+在Caffe中，目前有两种可视化prototxt格式网络结构的方法：
+
+1. 使用Netscope在线可视化
+
+2. 使用Caffe提供的draw_net.py
+
+1. 使用Netscope在线可视化
+Netscope是个支持prototxt格式描述的神经网络结构的在线可视工具，即:http://ethereon.github.io/netscope/quickstart.html 
+
+使用方法：首先打开这个地址:http://ethereon.github.io/netscope/#/editor，然后把你的描述神经网络结构的prototxt文件复制到该编辑框里，最后按shift-enter，这样就可以直接以图形方式显示网络的结构 。
+
+比如，以mnist的LeNet网络结构为例，把Caffe中example/mnist/lenet_train_test.prototxt文件的内容复制到编译框，按shift-enter,立即就可以得到可视化的结构图。 
+
+
+
+2. 使用Caffe提供的draw_net.py
+
+python/draw_net.py, 这个文件，就是用来绘制网络模型的。也就是将网络模型由prototxt变成一张图片。
+
+1. 安装graphviz :   sudo apt-get install graphviz
+
+2. 安装pydot :  sudo pip install pydot
+
+3.执行draw_net.py文件，带有三个参数：网络模型的prototxt文件，保存图片的路径及名字，--rankdir=x，x有四种选择，分别是LR, RL， TB， BT，用来表示网络的方向，分别是从左到右，从右到左，从上到下，从下到上，默认是LR。
+
+以绘制Lenet模型为例：
+
+ sudo python python/draw_net.py examples/mnist/lenet_train_test.prototxt netImage/lenet.png --rankdir=BT
