@@ -1,0 +1,78 @@
+caffe源码中已经帮我封装好了各种各样的layer，但是有时候现有的layer不能满足设计的网络要求，
+这个时候需要自己定义一个新的layer，
+本文参考: https://github.com/BVLC/caffe/wiki/Development
+https://blog.csdn.net/BVL10101111/article/details/74837156
+进行简单讲解，具体方式如下：
+
+一.创建.hpp文件
+1.添加你的layer头文件置于 include/caffe/layers/ 下，比如include/caffe/layers/your_layer.hpp
+
+2.your_layer继承选择继承layer.hpp, common_layers.hpp, data_layers.hpp, loss_layers.hpp, neuron_layers.hpp, 或者 vision_layers.hpp其中一种
+
+3.重写virtual inline const char* type() const { return "YourLayerName"; }函数，这个的目的是为了在写net.prototxt时，layer{type："YourLayerName"}有所对应
+
+4.根据自己layer的需要，对{*}blob部分方法进行重写，以此来限制bottom和top的blob个数。比如 要是重写了 virtual inline int ExactNumBottomBlobs() const { return 1; }就表示限制bottom的blob为1
+
+5.申明 
+virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,const vector<Blob<Dtype>*>& top);
+virtual void Reshape(const vector<Blob<Dtype>*>& bottom,const vector<Blob<Dtype>*>& top); 
+virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,const vector<Blob<Dtype>*>& top);
+virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+
+6.要是需要GPU加速，则需申明： 
+virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,const vector<Blob<Dtype>*>& top);
+virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+
+7.其他（根据算法需要的函数以及参数）
+
+可以在/caffe/include/caffe/下找到许多对应的例子，比如inner_product_layer.hpp： 略
+
+二.创建对应的.cpp文件
+1 添加你的源文件置于 src/caffe/layers/下，比如 src/caffe/layers/your_layer.cpp
+
+2.实现LayerSetUp方法(在这里你可以读取layer的参数，权重进行初始化等等)，该方法在layer::SetUp时候被调用，用于layer的初始化
+
+3.实现Reshape 方法，根据bottom的shape，修改top的shape等等，也是在layer::SetUp时候被调用，用于layer的初始化
+
+4.实现Forward_cpu和Backward_cpu 方法，前向传播计算loss和top，反向传播计算diff(梯度)
+
+5.在文件末尾加上这两行代码(XXXLayer表示layer的类名)，以此在fayer_factory.hpp中注册了此layer以便于运行时的统一创建 
+INSTANTIATE_CLASS(XXXLayer); 
+REGISTER_LAYER_CLASS(XXX);
+
+具体例子可参考:https://github.com/BVLC/caffe/blob/master/src/caffe/layers/inner_product_layer.cpp
+
+四.在caffe.proto添加your_layer的message
+1.如果想要在net.prototxt中设置你的layer的参数的话，你需要在caffe.proto中定义，定义好之后，即可在forward或者backward的方法中获取到参数值，进行其他相关运算
+
+一个简单的例子（InnerProductLayer ）如下：略
+2.与此同时，在caffe.proto 的message LayerParameter中添加对应的消息,同时更新一下注释，表明下一个可用的数字大小，比如：
+// LayerParameter next available layer-specific ID: 117 (last added: inner_product_param )
+message LayerParameter {
+...
+...
+...
+  optional InnerProductParameter inner_product_param = 117;
+...
+...
+...
+}
+
+五.编译
+最后重新编译一下caffe代码即可
+在 caffe 目录下执行 ：
+make clean
+make all -j8  
+make test -j8  
+make runtest -j8  
+  
+#安装 pycaffe notebook 接口环境
+cd caffe
+sudo make pycaffe -j8
+
+#编译 pycaffe 成功后，验证一下是否可以在 python 中导入 caffe 包，首先进入 python 环境：
+python
+>>> import caffe
+
+若不报错则表示 caffe 的 python 接口已正确编译
+
