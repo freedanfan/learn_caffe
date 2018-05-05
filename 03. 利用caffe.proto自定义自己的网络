@@ -1,0 +1,31 @@
+1. 现在以 ShuffleNet的代码作为例子： https://github.com/farmingyard/ShuffleNet
+
+在训练ShuffleNet时需要 下面内容添加到caffe.proto中然后重新编译caffe：
+  #1. 在caffe.proto文件中的 message LayerParameter 中添加如下行：
+message LayerParameter {
+...
+optional ShuffleChannelParameter shuffle_channel_param = 164;
+...
+}
+
+  #2. 在 caffe.proto 末尾添加新的message：
+message ShuffleChannelParameter {
+optional uint32 group = 1[default = 1]; // The number of group
+}
+
+  #3. 将 shuffle_channel_layer.cpp 和 shuffle_channel_layer.cu 放入 /src/caffe/layers 文件夹内
+   将 shuffle_channel_layer.hpp 放入 /include/caffe/layers 文件夹中
+
+  #4. caffe 改动后的重新编译
+     ##1.更新了内核代码后，要在caffe-master的文件路径里执行如下步骤：
+make clean
+make all -j8
+make test -j8
+make runtest 
+     ##2.再重新编译python接口
+make pycaffe
+
+     ##3.测试是否成功
+python
+import caffe
+
