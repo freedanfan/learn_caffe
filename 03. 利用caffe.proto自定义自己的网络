@@ -30,4 +30,5 @@ python
 import caffe
 
 利用caffe.proto自定义自己的网络 参考：
+https://chrischoy.github.io/research/making-caffe-layer/
 https://blog.csdn.net/u012767526/article/details/51476324
