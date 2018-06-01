@@ -1,0 +1,68 @@
+## 待解析的文件格式为：
+‘’‘
+#Iters Seconds TrainingLoss LearningRate
+0      0.109618   2.36729      1
+100    0.295548   0.121048     1
+200    0.473752   0.0946104    1
+300    0.648476   0.0667892    1
+400    0.821569   0.0699059    1
+500    1.073517   0.102974     1
+600    1.238505   0.0943778    1
+700    1.412184   0.0601946    1
+...
+’‘’
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+train_log = "mnist.log.train"
+test_log = 'mnist.log.test'
+print '---------read log file---------'
+with open(train_log,'r') as list:
+    lines = list.readlines()
+train_lines = lines[1:]
+with open(test_log,'r') as list:
+    lines = list.readlines()
+test_lines = lines[1:]
+print '---------read finished---------'
+
+print '--------parse train log--------'
+train_Iters=[]
+train_Seconds=[]
+train_Loss=[]
+for message in train_lines:
+    mess= message.strip().split()
+    print "Iters", mess
+    train_Iters.append(np.int(mess[0]))         # Iters
+    train_Seconds.append(np.float32(mess[1]))   # Seconds
+    train_Loss.append(np.float32(mess[2]))      # TrainingLoss
+
+train_Iters = np.asarray(train_Iters)
+train_Seconds = np.asarray(train_Seconds)
+train_Loss = np.asarray(train_Loss)
+print '--------parse test log--------'
+test_Iters=[]
+test_Seconds=[]
+test_Accuracy=[]
+test_Loss=[]
+for message in test_lines:
+    mess= message.strip().split()
+    print "Iters", mess
+    test_Iters.append(np.int(mess[0]))          # Iters
+    test_Seconds.append(np.float32(mess[1]))    # Seconds
+    test_Accuracy.append(np.float32(mess[2]))   # TestAccuracy
+    test_Loss.append(np.float32(mess[3]))       # TestLoss
+Iters = np.asarray(test_Iters)
+test_Seconds = np.asarray(test_Seconds)
+test_Accuracy = np.asarray(test_Accuracy)
+test_Loss = np.asarray(test_Loss)
+
+
+print '---------start plot---------'
+plt.plot(train_Iters,train_Loss,label="train")
+plt.plot(Iters,test_Loss,label='test')
+plt.xlabel("Iter")
+plt.ylabel("loss")
+plt.legend()
+plt.show()
